@@ -4,7 +4,7 @@ const path = require("path");
 const Product = require("./models");
 const Order = require("./order");
 const { CartItem } = require("./cart");
-const { DeliveryOption } = require("./deliveryOptions");
+const { DeliveryOption } = require("./deliveryoptions");
 const routes = require("./routes"); // This imports everything from routes.js
 
 const app = express();
