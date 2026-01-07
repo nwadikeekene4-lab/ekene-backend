@@ -5,22 +5,24 @@ const Product = require("./models");
 const Order = require("./order");
 const { CartItem } = require("./cart");
 const { DeliveryOption } = require("./deliveryoptions");
-const routes = require("./routes"); // This imports everything from routes.js
+const routes = require("./routes"); 
 
 const app = express();
 require("dotenv").config();
 
-// Enable CORS
+// --- UPDATED CORS CONFIGURATION ---
 app.use(cors({
-  origin: "http://localhost:5173",
+  // Add your Vercel URL here. You can use an array to keep localhost for testing.
+  origin: [
+    "http://localhost:5173", 
+    "https:ekene-shop.vercel.app" // REPLACE with your actual live Vercel URL
+  ],
   credentials: true
 }));
 
-// Serve uploaded images (Keep this for any local testing)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.json());
 
-// USE THE ROUTES FILE
 app.use(routes);
 
 async function startServer() {
@@ -29,12 +31,11 @@ async function startServer() {
   await CartItem.sync();
   await Order.sync({ alter: true });
 
- // This checks if the hosting service (Render) provided a port, otherwise uses 5000
-const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
 startServer();
