@@ -15,7 +15,7 @@ app.use(cors({
   // Add your Vercel URL here. You can use an array to keep localhost for testing.
   origin: [
     "http://localhost:5173", 
-    "https:ekene-shop.vercel.app" // REPLACE with your actual live Vercel URL
+    "https://ekene-shop.vercel.app" // REPLACE with your actual live Vercel URL
   ],
   credentials: true
 }));
