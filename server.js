@@ -10,19 +10,12 @@ const routes = require("./routes");
 const app = express();
 require("dotenv").config();
 
-// --- UPDATED CORS CONFIGURATION ---
-app.use(cors({
-  origin: [
-    "http://localhost:5173", 
-    "https://ekene-shop.vercel.app" 
-  ],
-  credentials: true
-}));
+// --- FIXED CORS CONFIGURATION ---
+// This allows all origins temporarily to stop the "CORS Failed" error
+app.use(cors());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.json());
-
-// Note: app.use(routes) is moved into startServer below to prevent "Cannot GET" errors
 
 async function startServer() {
   try {
@@ -33,7 +26,8 @@ async function startServer() {
     await Order.sync({ alter: true });
     console.log("✅ Database synced successfully");
 
-    // ACTIVATE ROUTES AFTER SYNC
+    // ACTIVATE ROUTES
+    // Important: This must be after express.json()
     app.use(routes);
 
     const PORT = process.env.PORT || 5000;
