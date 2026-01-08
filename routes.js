@@ -18,15 +18,18 @@ cloudinary.config({
   secure: true 
 });
 
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "password123"; 
-
-// LOGIN ROUTE
+// --- UPDATED LOGIN ROUTE WITH ENV SUPPORT ---
 router.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+
+  // Uses Render Environment Variables OR defaults to your specified strings
+  const expectedUsername = process.env.ADMIN_USERNAME || "admin";
+  const expectedPassword = process.env.ADMIN_PASSWORD || "password123";
+
+  if (username === expectedUsername && password === expectedPassword) {
     res.json({ success: true, message: "Login successful" });
   } else {
+    // Sending 401. Your updated server.js CORS will handle the headers correctly now.
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
 });
@@ -141,7 +144,6 @@ router.post("/paystack/init", async (req, res) => {
       { 
         email, 
         amount: Math.round(amount * 100), 
-        // UPDATED callback_url to your live Vercel URL
         callback_url: "https://ekene-shop.vercel.app/checkout",
         metadata: {
           custom_fields: [

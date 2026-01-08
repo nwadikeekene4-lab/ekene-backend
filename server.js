@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config(); // Load variables before anything else
+require("dotenv").config(); // Load variables first
 
 const Product = require("./models");
 const Order = require("./order");
@@ -11,30 +11,50 @@ const routes = require("./routes");
 
 const app = express();
 
-// --- 1. ROBUST CORS CONFIGURATION (Express v5 Compatible) ---
+// --- 1. DYNAMIC CORS & PREFLIGHT FIX ---
+const allowedOrigins = [
+  "https://ekene-shop.vercel.app",
+  "https://ekene-shop.vercel.app/",
+  "http://localhost:3000"
+];
+
 const corsOptions = {
-  // Replace with your actual Vercel URL
-  origin: ["https://ekene-shop.vercel.app", "http://localhost:3000"], 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps/Postman) or matches our list
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.endsWith(".vercel.app")) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Blocked for origin: " + origin));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   credentials: true,
   optionsSuccessStatus: 200
 };
 
-// Apply CORS globally
 app.use(cors(corsOptions));
-
-// FIXED: Express v5 requires a name for wildcards. 
-// We use "/*path" instead of "*" to handle Preflight (OPTIONS) requests.
+// Handle Preflight for all routes using Express v5 named wildcard syntax
 app.options("/*path", cors(corsOptions)); 
 
-// --- 2. MIDDLEWARE ---
+// --- 2. MIDDLEWARE & LOGIN DEBUGGER ---
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// This middleware logs login attempts to the RENDER LOGS
+app.use((req, res, next) => {
+  if (req.path === '/admin/login' && req.method === 'POST') {
+    console.log("--- Login Debug ---");
+    console.log("Username Received:", req.body.username);
+    console.log("Password Received:", req.body.password);
+    console.log("Expect Username:", process.env.ADMIN_USERNAME);
+    console.log("Expect Password:", process.env.ADMIN_PASSWORD);
+  }
+  next();
+});
 
 // --- 3. START SERVER & SYNC ---
 async function startServer() {
   try {
-    // Sync Database Tables
     await Product.sync({ alter: true }); 
     await DeliveryOption.sync();
     await CartItem.sync();
@@ -42,11 +62,9 @@ async function startServer() {
     console.log("✅ Database synced successfully");
 
     // --- 4. ROUTES ---
-    // Important: app.use(routes) must be after CORS and express.json()
     app.use(routes);
 
     const PORT = process.env.PORT || 5000;
-    // '0.0.0.0' is critical for Render to bind correctly
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
