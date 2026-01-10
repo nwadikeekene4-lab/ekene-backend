@@ -53,10 +53,16 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 
 const ensureFullUrl = (path) => {
-  if (!path || path === "null" || typeof path !== 'string') return "https://placehold.co/100x100?text=No+Image";
-  if (path.startsWith('http')) return path; // Use the Cloudinary URL as is
+  if (!path || path === "null" || typeof path !== 'string') {
+    return "https://placehold.co/100x100?text=No+Image";
+  }
+  
+  // If it's already a full link (HTTPS), return it immediately
+  if (path.startsWith('http')) return path;
+
+  // If it's just a filename or a relative path, build the Cloudinary link correctly
   const fileName = path.split('/').pop(); 
-  return `https://res.cloudinary.com/dw4jcixiu/image/upload/shop_products/${fileName}`;
+  return `https://res.cloudinary.com/dw4jcixiu/image/upload/f_auto,q_auto/shop_products/${fileName}`;
 };
 
 // 2. PRODUCT ROUTES
