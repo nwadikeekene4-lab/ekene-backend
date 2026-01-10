@@ -13,17 +13,17 @@ const app = express();
 
 // --- 1. DYNAMIC CORS & PREFLIGHT FIX ---
 const allowedOrigins = [
-  "https://ekene-shop.vercel.app",
-  "https://ekene-shop-five.vercel.app", // Added common Vercel suffix just in case
+  "https://my-website-69a6.onrender.com", // YOUR NEW RENDER FRONTEND
   "http://localhost:3000"
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // If no origin (like mobile apps or curl) or it's in our list
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    // Check if the origin is in our list OR ends with .onrender.com
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".onrender.com")) {
       callback(null, true);
     } else {
+      console.log("CORS blocked origin:", origin); // Added for easier debugging
       callback(new Error("CORS Blocked for origin: " + origin));
     }
   },
@@ -37,11 +37,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // --- INSTRUCTION 2 INTEGRATED: Manual Chrome Preflight Handler ---
-// This ensures that Chrome's "OPTIONS" request always succeeds before the POST
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     const origin = req.headers.origin;
-    // Set headers manually to be 100% sure Chrome is happy
+    // Ensure the manual response matches the requesting origin if it's allowed
     res.header("Access-Control-Allow-Origin", origin || "*");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
@@ -55,7 +54,6 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// This debugger helps you see if your Render Environment Variables are working
 app.use((req, res, next) => {
   if (req.path === '/admin/login' && req.method === 'POST') {
     console.log("--- 🛡️ Login Attempt Security Log ---");
