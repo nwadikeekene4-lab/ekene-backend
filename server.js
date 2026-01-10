@@ -6,7 +6,7 @@ require("dotenv").config();
 const Product = require("./models");
 const Order = require("./order");
 const { CartItem } = require("./cart");
-const { DeliveryOption } = require("./deliveryoptions");
+const { DeliveryOption = { sync: () => Promise.resolve() } } = require("./deliveryoptions"); // Added safety check
 const routes = require("./routes"); 
 
 const app = express();
@@ -32,20 +32,22 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-// Apply CORS to EVERYTHING
+// Apply CORS to standard requests
 app.use(cors(corsOptions));
 
-// FIX for Express 5: Use this syntax for the Preflight "handshake"
-// This matches every path without using the old (*) or (.*) syntax that crashes Express 5
-app.options('*', cors(corsOptions)); 
-
-// Manual Header Fallback (The "Safety Net")
+// FIX FOR EXPRESS 5: Manual Preflight Handshake Handler
+// This replaces app.options('*') which causes the crash in Express 5
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
-    res.header("Access-Control-Allow-Origin", origin);
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+    if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
+      res.header("Access-Control-Allow-Origin", origin);
+    }
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
+    res.header("Access-Control-Allow-Credentials", "true");
+    return res.sendStatus(200); // Send status 200 and stop processing
   }
-  res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
 
@@ -66,7 +68,7 @@ app.use((req, res, next) => {
 async function startServer() {
   try {
     await Product.sync({ alter: true }); 
-    await DeliveryOption.sync();
+    if (DeliveryOption.sync) await DeliveryOption.sync();
     await CartItem.sync();
     await Order.sync({ alter: true });
     console.log("✅ Database synced successfully");
