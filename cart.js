@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./config");
 const Product = require("./models");
-const { DeliveryOption } = require("./deliveryoptions");
+const { DeliveryOption } = require("./deliveryoptions.js");
 
 const CartItem = sequelize.define("CartItem", {
   productId: {
@@ -19,7 +19,7 @@ const CartItem = sequelize.define("CartItem", {
   },
   deliveryOptionId: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: DeliveryOption,
       key: "id"

@@ -123,19 +123,26 @@ router.get("/cart", async (req, res) => {
 router.post("/cart/add", async (req, res) => {
   try {
     const { productId, quantity } = req.body;
+    
+    // 1. Find existing item
     let item = await CartItem.findOne({ where: { productId } });
+    
     if (item) { 
       item.quantity += parseInt(quantity); 
       await item.save(); 
     } else { 
+      // 2. Create new item (Leaving deliveryOptionId out for now so it defaults to null)
       item = await CartItem.create({ 
         productId, 
-        quantity: parseInt(quantity), 
-        deliveryOptionId: 'standard' 
+        quantity: parseInt(quantity)
+        // We removed the hardcoded 'standard' to prevent the Foreign Key error
       }); 
     }
     res.json(item);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+    console.error("Cart Add Error:", err);
+    res.status(500).json({ error: err.message }); 
+  }
 });
 
 router.delete("/cart/clear", async (req, res) => {
