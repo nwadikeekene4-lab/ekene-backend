@@ -32,13 +32,14 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-// Use CORS middleware
+// Apply CORS to EVERYTHING
 app.use(cors(corsOptions));
 
-// FIX: Express v5 requires the wildcard to be in parentheses (.*)
-app.options("/(.*)", cors(corsOptions)); 
+// FIX for Express 5: Use this syntax for the Preflight "handshake"
+// This matches every path without using the old (*) or (.*) syntax that crashes Express 5
+app.options('*', cors(corsOptions)); 
 
-// Manual Header Fallback
+// Manual Header Fallback (The "Safety Net")
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
