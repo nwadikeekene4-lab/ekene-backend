@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config(); // Load variables first
+require("dotenv").config(); 
 
 const Product = require("./models");
 const Order = require("./order");
@@ -20,8 +20,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps/Postman) or matches our list
-    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.endsWith(".vercel.app")) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
       callback(null, true);
     } else {
       callback(new Error("CORS Blocked for origin: " + origin));
@@ -29,25 +28,34 @@ const corsOptions = {
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
-// Handle Preflight for all routes using Express v5 named wildcard syntax
-app.options("/*path", cors(corsOptions)); 
+
+// Handle Preflight for all routes - Express v5 friendly wildcard
+app.options("*", cors(corsOptions)); 
+
+// Manual Header Fallback (Safety net for 401/500 errors)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 // --- 2. MIDDLEWARE & LOGIN DEBUGGER ---
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// This middleware logs login attempts to the RENDER LOGS
 app.use((req, res, next) => {
   if (req.path === '/admin/login' && req.method === 'POST') {
-    console.log("--- Login Debug ---");
+    console.log("--- Login Attempt Detected ---");
     console.log("Username Received:", req.body.username);
-    console.log("Password Received:", req.body.password);
-    console.log("Expect Username:", process.env.ADMIN_USERNAME);
-    console.log("Expect Password:", process.env.ADMIN_PASSWORD);
+    console.log("Expected Admin:", process.env.ADMIN_USERNAME);
   }
   next();
 });
@@ -61,7 +69,6 @@ async function startServer() {
     await Order.sync({ alter: true });
     console.log("✅ Database synced successfully");
 
-    // --- 4. ROUTES ---
     app.use(routes);
 
     const PORT = process.env.PORT || 5000;
