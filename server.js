@@ -69,7 +69,7 @@ async function startServer() {
   try {
     await Product.sync({ alter: true }); 
     if (DeliveryOption.sync) await DeliveryOption.sync();
-    await CartItem.sync({ alter: true });
+    await CartItem.sync({ force: true });
     await Order.sync({ alter: true });
     console.log("✅ Database synced successfully");
 
