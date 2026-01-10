@@ -18,18 +18,18 @@ cloudinary.config({
   secure: true 
 });
 
-// --- UPDATED LOGIN ROUTE WITH ENV SUPPORT ---
+// --- UPDATED LOGIN ROUTE WITH DEBUGGING ---
 router.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
 
-  // Uses Render Environment Variables OR defaults to your specified strings
   const expectedUsername = process.env.ADMIN_USERNAME || "admin";
   const expectedPassword = process.env.ADMIN_PASSWORD || "password123";
 
   if (username === expectedUsername && password === expectedPassword) {
+    console.log("✅ Admin Login Successful");
     res.json({ success: true, message: "Login successful" });
   } else {
-    // Sending 401. Your updated server.js CORS will handle the headers correctly now.
+    console.log("❌ Admin Login Failed: Incorrect Credentials");
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
 });
@@ -144,7 +144,8 @@ router.post("/paystack/init", async (req, res) => {
       { 
         email, 
         amount: Math.round(amount * 100), 
-        callback_url: "https://ekene-shop.vercel.app/checkout",
+        // FIXED: Updated callback URL to your new Render Frontend
+        callback_url: "https://my-website-69a6.onrender.com/checkout",
         metadata: {
           custom_fields: [
             { display_name: "Customer Name", variable_name: "customer_name", value: customerDetails.name },
