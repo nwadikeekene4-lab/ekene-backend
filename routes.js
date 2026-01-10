@@ -54,13 +54,11 @@ const upload = multer({ storage: storage });
 
 const ensureFullUrl = (path) => {
   if (!path || path === "null" || typeof path !== 'string') {
-    return "https://placehold.co/100x100?text=No+Image";
+    return "https://placehold.co/300x300?text=No+Image";
   }
-  
-  // If it's already a full link (HTTPS), return it immediately
   if (path.startsWith('http')) return path;
 
-  // If it's just a filename or a relative path, build the Cloudinary link correctly
+  // Optimized fallback for older entries
   const fileName = path.split('/').pop(); 
   return `https://res.cloudinary.com/dw4jcixiu/image/upload/f_auto,q_auto/shop_products/${fileName}`;
 };

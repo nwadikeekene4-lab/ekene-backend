@@ -9,7 +9,8 @@ const Product = sequelize.define("Product", {
   },
   name: DataTypes.STRING,
   price: DataTypes.FLOAT,
-  image: DataTypes.STRING,
+  // CHANGED: Use TEXT to allow long Cloudinary URLs
+  image: DataTypes.TEXT, 
   rating: {
     type: DataTypes.JSON,
     defaultValue: { stars: 0, count: 0 }
