@@ -53,8 +53,8 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 
 const ensureFullUrl = (path) => {
-  if (!path) return "https://placehold.co/100x100?text=No+Image";
-  if (path.startsWith('http')) return path;
+  if (!path || path === "null" || typeof path !== 'string') return "https://placehold.co/100x100?text=No+Image";
+  if (path.startsWith('http')) return path; // Use the Cloudinary URL as is
   const fileName = path.split('/').pop(); 
   return `https://res.cloudinary.com/dw4jcixiu/image/upload/shop_products/${fileName}`;
 };
