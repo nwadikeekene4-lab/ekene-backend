@@ -65,15 +65,23 @@ const ensureFullUrl = (path) => {
 
 // 2. PRODUCT ROUTES
 router.post("/admin/products", upload.single("image"), async (req, res) => {
+  // DEBUG LOGS - Check these in Render Logs
+  console.log("Form Body:", req.body);
+  console.log("File Object:", req.file);
+
   try {
     const product = await Product.create({
       name: req.body.name,
       price: parseFloat(req.body.price),
-      image: req.file ? req.file.path : null, 
+      // Use req.file.path (Cloudinary URL) or req.file.secure_url
+      image: req.file ? (req.file.path || req.file.secure_url) : null, 
       rating: { stars: 0, count: 0 }
     });
     res.json(product);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+    console.error("Database Save Error:", err);
+    res.status(500).json({ error: err.message }); 
+  }
 });
 
 router.put("/admin/products/:id", upload.single("image"), async (req, res) => {
